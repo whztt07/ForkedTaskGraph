@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Public">
+      <UniqueIdentifier>{3274e4e6-e919-48bc-8743-7edc65a525c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Private">
+      <UniqueIdentifier>{9db9d32d-5561-4ca6-a001-42eebeb5c99f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\Thread">
+      <UniqueIdentifier>{69846493-76ee-4f8f-9e56-8009114a62ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\Sync">
+      <UniqueIdentifier>{108d5920-e3b8-4dce-b8e5-53a16452897a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\LockFree">
+      <UniqueIdentifier>{7cd6262b-69bb-47ab-bd21-b8642a8446a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\ThreadPool">
+      <UniqueIdentifier>{ed012d68-bba7-4c4b-bc67-138e37861aa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\TaskGraph">
+      <UniqueIdentifier>{2985ee77-abd9-4228-8b15-a114e9438070}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\Windows">
+      <UniqueIdentifier>{dfff3490-41ab-4ed8-8092-6054386e84c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public\Atomic">
+      <UniqueIdentifier>{8997c7f4-002c-42a4-9276-f283555f7bea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Private\LockFreeList.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\TaskGraph.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\WindowsPlatformProcess.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\ThreadingBase.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\TaskGraphCommon.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\WindowsRunnableThread.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\WindowsPlatformTime.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Public\RefCounting.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\TaskGraphCommon.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\ThreadManager.h">
+      <Filter>Public\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Runnable.h">
+      <Filter>Public\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Event.h">
+      <Filter>Public\Sync</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\EventPool.h">
+      <Filter>Public\Sync</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\AllocatorFixedSizeFreeList.h">
+      <Filter>Public\LockFree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\IQueuedWork.h">
+      <Filter>Public\ThreadPool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\LockFreeFixedSizeAllocator.h">
+      <Filter>Public\LockFree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\LockFreeList.h">
+      <Filter>Public\LockFree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\QueuedThreadPool.h">
+      <Filter>Public\ThreadPool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\RunnableThread.h">
+      <Filter>Public\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\SingleThreadRunnable.h">
+      <Filter>Public\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\TaskGraphInterfaces.h">
+      <Filter>Public\TaskGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\WindowsCriticalSection.h">
+      <Filter>Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\WindowsEvent.h">
+      <Filter>Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\WindowsPlatformAtomics.h">
+      <Filter>Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\WindowsPlatformProcess.h">
+      <Filter>Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\WindowsRunnableThread.h">
+      <Filter>Public\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\ScopedEvent.h">
+      <Filter>Public\Sync</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\ThreadSafeCounter.h">
+      <Filter>Public\Atomic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\GenericPlatformAffinity.h">
+      <Filter>Public\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\TlsAutoCleanup.h">
+      <Filter>Public\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\ScopeLock.h">
+      <Filter>Public\Sync</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\GenericPlatformTime.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
