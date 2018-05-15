@@ -79,7 +79,7 @@ public:
 				int ThreadID = Thread->GetThreadID();
 				JobToDo->Task(ThreadID);
 				JobToDo->EndJob();
-				//JobToDo->~YJob();
+				JobToDo->~YJob();
 				//delete JobToDo;
 			}
 			else
@@ -111,30 +111,16 @@ YJob::YJob()
 	PrerequistsCounter.Set(1);
 }
 
-bool YJob::AddChildJob(YJob* Child)
+
+
+
+
+YJobHandleRef YJob::DispatchJob()
 {
-	if (SubsequenceJobs.IsClosed())
-	{
-		return false;
-	}
-	else
-	{
-		SubsequenceJobs.Push(Child);
-		return true;
-	}
+	YJobHandleRef JobRefBeforeRelease = JobHandle;
+	YTaskGraphInterface::Get().DispatchJob(this);
+	return JobRefBeforeRelease;
 }
-
-void YJob::EndJob()
-{
-	std::vector<YJob*> ChildrenJobs = SubsequenceJobs.GetArrayValueAndClosed();
-	for (YJob* ChildJob : ChildrenJobs)
-	{
-		assert(ChildJob);
-		YTaskGraphInterface::Get().DispatchJob(ChildJob);
-	}
-}
-
-
 
 class YTaskGraphInterfaceImplement : public YTaskGraphInterface
 {
@@ -264,4 +250,62 @@ void YTaskGraphTest()
 		TrigerEventJob* JobEvent = YTaskGraphInterface::CreateTask<TrigerEventJob>(&Parent, Event.Get());
 		YTaskGraphInterface::Get().DispatchJob(JobEvent);
 	}
+
+
+}
+
+void YJobHandle::DoNotCompleteUnitl(YJobHandleRef JobHandleToWaitFor)
+{
+	WaitForJobs.push_back(JobHandleToWaitFor);
+}
+bool YJobHandle::AddChildJob(YJob* Child)
+{
+	if (SubsequenceJobs.IsClosed())
+	{
+		return false;
+	}
+	else
+	{
+		SubsequenceJobs.Push(Child);
+		return true;
+	}
+}
+void YJobHandle::EndJob()
+{
+	if (WaitForJobs.size())
+	{
+		 YJob::CreateJob<YJobNullTask>(YJobHandleRef(this), &WaitForJobs)->DispatchJob();
+		 return;
+	}
+	std::vector<YJob*> ChildrenJobs = SubsequenceJobs.GetArrayValueAndClosed();
+	for (YJob* ChildJob : ChildrenJobs)
+	{
+		assert(ChildJob);
+		YTaskGraphInterface::Get().DispatchJob(ChildJob);
+	}
+}
+
+bool YJobHandle::IsComplelte() 
+{
+	return SubsequenceJobs.IsClosed();
+}
+
+YJobHandle::YJobHandle()
+{
+
+}
+
+YJobHandle::~YJobHandle()
+{
+
+}
+
+YJobNullTask::YJobNullTask()
+{
+
+}
+
+void YJobNullTask::Task(int InThreadID)
+{
+
 }
