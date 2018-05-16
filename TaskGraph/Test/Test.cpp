@@ -246,8 +246,14 @@ int main()
 	std::cout << "qsort cost time " << fEndTime - fStart << std::endl;
 	CompareResult();
 
+
 	YTaskGraphTest();
 	
+	fStart = FPlatformTime::Seconds();
+	MergeParallelWithY();
+	fEndTime = FPlatformTime::Seconds();
+	std::cout << "merge sort YJob cost time " << fEndTime - fStart << std::endl;
+	CompareResultY();
 	EndRedirectionIoToFile();
 	std::cout << "EndProcess..." << std::endl;
 }

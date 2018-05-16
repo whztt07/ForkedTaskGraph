@@ -12,5 +12,7 @@ public:
 void AllocResource();
 void Merge();
 void MergeParallel();
+void MergeParallelWithY();
+void CompareResultY();
 void CompareResult();
 void QSort();

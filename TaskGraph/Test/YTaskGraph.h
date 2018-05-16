@@ -5,6 +5,7 @@
 #include "ThreadSafeCounter.h"
 #include "RefCounting.h"
 #include <assert.h>
+#include "Event.h"
 
 void YTaskGraphTest();
 
@@ -150,7 +151,7 @@ public:
 	}
 	
 	void DoNotCompleteUnitl(YJobHandleRef JobHandleToWaitFor);
-	void EndJob();
+	void DispatchSubsequents();
 	bool IsComplelte() ;
 private:
 	YJobHandle();
@@ -167,11 +168,11 @@ class YJob
 	friend class YTaskGraphInterfaceImplement;
 public:
 	YJob();
-	virtual void Task(int InThreadID) = 0;
+	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle) = 0;
 	template<typename T,typename ... args>
-	static YJob* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, arg&& ... args)
+	static T* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
-		T* NewJob = new T(std::forward<arg>(args)...);
+		T* NewJob = new T(std::forward<args>(arg)...);
 		if (Depeneces)
 		{
 			for (YJobHandleRef ParentJob : *Depeneces)
@@ -186,9 +187,9 @@ public:
 		return NewJob;
 	}
 	template<typename T, typename ... args>
-	static YJob* CreateJob(YJobHandleRef JobRef, std::vector<YJobHandleRef> *Depeneces = nullptr, arg&& ... args)
+	static T* CreateJob(YJobHandleRef JobRef, std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
-		T* NewJob = new T(std::forward<arg>(args)...);
+		T* NewJob = new T(std::forward<args>(arg)...);
 		if (Depeneces)
 		{
 			for (YJobHandleRef ParentJob : *Depeneces)
@@ -203,6 +204,7 @@ public:
 		return NewJob;
 	}
 	YJobHandleRef DispatchJob();
+	YJobHandleRef GetJobHandle();
 	void ExcuteTask(int InThreadI);
 private:
 	FThreadSafeCounter  PrerequistsCounter;
@@ -224,5 +226,17 @@ class YJobNullTask:public YJob
 {
 public:
 	YJobNullTask();
-	virtual void Task(int InThreadID) override;
+	virtual void Task(int InThreadID,YJobHandleRef) override;
+};
+
+class TrigerEventJob :public YJob
+{
+public:
+	TrigerEventJob(FEvent* pEvent)
+	{
+		Event = pEvent;
+	}
+	virtual void Task(int InThreadIDY, YJobHandleRef ThisJobHandle) override;
+	
+	FEvent* Event;
 };

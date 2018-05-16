@@ -4,6 +4,7 @@
 #include <iostream>
 #include "TaskGraphInterfaces.h"
 #include "ScopedEvent.h"
+#include "YTaskGraph.h"
 
 AsycComputeTree::AsycComputeTree()
 {
@@ -16,6 +17,7 @@ AsycComputeTree::~AsycComputeTree()
 std::vector<int>   GVector;
 std::vector<int>   GVector2;
 std::vector<int>   GVector3;
+std::vector<int>   GVector4;
 
 void MergeSortRecursive(int nStart,int nEnd)
 {
@@ -29,7 +31,7 @@ void MergeSortRecursive(int nStart,int nEnd)
 	MergeSortRecursive(Mid,nEnd);
 	std::inplace_merge(GVector.begin() + nStart, GVector.begin() + Mid, GVector.begin() + nEnd);
 }
-int gCount = 10000;
+int gCount = 1000000;
 void AllocResource()
 {
 	GVector.reserve(gCount);
@@ -40,6 +42,7 @@ void AllocResource()
 
 	GVector2.assign(GVector.begin(), GVector.end());
 	GVector3.assign(GVector.begin(), GVector.end());
+	GVector4.assign(GVector.begin(), GVector.end());
 }
 
 void Merge()
@@ -114,6 +117,7 @@ public:
 	int nEnd;
 };
 
+
 void MergeParallel()
 {
 
@@ -130,11 +134,78 @@ void MergeParallel()
 	}*/
 }
 
+class YMergeJob : public YJob
+{
+public:
+	int nStart;
+	int nEnd;
+	int nMid;
+	YMergeJob(int Start, int End, int Mid)
+		:nStart(Start)
+		, nEnd(End)
+		, nMid(Mid)
+	{
+
+	}
+	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle)
+	{
+		std::inplace_merge(GVector4.begin() + nStart, GVector4.begin() + nMid, GVector4.begin() + nEnd);
+	}
+};
+
+class MergeSortJob: public YJob
+{
+public:
+	MergeSortJob(int Start, int End)
+		:nStart(Start)
+		, nEnd(End)
+	{}
+
+	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle)
+	{
+		if (nEnd - nStart < 100)
+		{
+			std::sort(GVector4.begin() + nStart, GVector4.begin() + nEnd);
+			return;
+		}
+		int Mid = (nStart + nEnd) / 2;
+		YJobHandleRef LeftHalfSoft = YJob::CreateJob<MergeSortJob>(nullptr,nStart, Mid)->DispatchJob();
+		YJobHandleRef RightHalfSoft = YJob::CreateJob<MergeSortJob>(nullptr, Mid, nEnd)->DispatchJob();
+	    std::vector<YJobHandleRef> MergePrerequisites = { LeftHalfSoft, RightHalfSoft };
+		ThisJobHandle->DoNotCompleteUnitl(YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
+	}
+
+	int nStart;
+	int nEnd;
+};
+void MergeParallelWithY()
+{
+	{
+		FScopedEvent WaitForTasks;
+		std::vector<YJobHandleRef> WaitList;
+		WaitList.push_back(YJob::CreateJob<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
+		YJob::CreateJob<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
+		// waitfor(Root.GFXWaitForTickComplete);
+	}
+}
+
 void CompareResult()
 {
 	if (memcmp(&GVector[0], &GVector2[0], sizeof(int)*GVector.size()) == 0)
 	{
 		std::cout << "march" << std::endl;
+	}
+	else
+	{
+		std::cout << "unmarch" << std::endl;
+	}
+}
+
+void CompareResultY()
+{
+	if (memcmp(&GVector[0], &GVector4[0], sizeof(int)*GVector.size()) == 0)
+	{
+		std::cout << "marchY" << std::endl;
 	}
 	else
 	{
