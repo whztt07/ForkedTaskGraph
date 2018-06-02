@@ -183,8 +183,8 @@ private:
 		std::vector<YJobHandleRef> MergePrerequisites;
 		MergePrerequisites.push_back(LeftHalfSoft);
 		MergePrerequisites.push_back(RightHalfSoft);
-		//ThisJobHandle->DoNotCompleteUnitl(YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
-		YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd,Mid)->DispatchJob();
+		ThisJobHandle->DoNotCompleteUnitl(YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
+		//YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd,Mid)->DispatchJob();
 		//ThisJobHandle->DoNotCompleteUnitl(LeftHalfSoft);
 	}
 
@@ -199,7 +199,7 @@ void MergeParallelWithY()
 		WaitList.push_back(YJob::CreateJob<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
 		YJob::CreateJob<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
 		// waitfor(Root.GFXWaitForTickComplete);
-		FPlatformProcess::Sleep(10);
+		//FPlatformProcess::Sleep(10);
 	}
 }
 
