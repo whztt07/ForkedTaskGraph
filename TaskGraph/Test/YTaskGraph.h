@@ -40,10 +40,10 @@ public:
 		InternalArray.push_back(InObject);
 	}
 
-	inline int Num()
+	inline size_t Num()
 	{
 		FScopeLock Lock(&CriticalSection);
-		return (int)InternalArray.size();
+		return InternalArray.size();
 	}
 	std::vector<T*> InternalArray;
 	FCriticalSection CriticalSection;
@@ -60,13 +60,16 @@ public:
 	}
 	inline std::vector<T*> GetArrayValueAndClosed()
 	{
-		std::vector<T*> tmp;
-		{
 			FScopeLock Lock(&CriticalSection);
-			tmp.swap(InternalArray);
+			std::vector<T*> tmp;
+			if (ClosedFlags.GetValue() == 1)
+			{
+				return tmp;
+			}
+			tmp = InternalArray;
+			InternalArray.clear();
 			ClosedFlags.Set(1);
-		}
-		return std::move(tmp);
+		return tmp;
 	}
 	inline bool AddIfNotClosed(T* Value)
 	{
@@ -98,7 +101,6 @@ public:
 		FScopeLock Lock(&CriticalSection);
 		if (InternalArray.size() == 0)
 		{
-			aseert(0);
 			return T();
 		}
 		else
@@ -115,10 +117,10 @@ public:
 		InternalArray.push_back(InObject);
 	}
 
-	int Num()
+	size_t Num()
 	{
 		FScopeLock Lock(&CriticalSection);
-		return (int)InternalArray.size();
+		return InternalArray.size();
 	}
 	std::vector<T> InternalArray;
 	FCriticalSection CriticalSection;
@@ -168,11 +170,13 @@ class YJob
 	friend class YTaskGraphInterfaceImplement;
 public:
 	YJob();
-	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle) = 0;
+	virtual ~YJob();
+	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) = 0;
 	template<typename T,typename ... args>
 	static T* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
 		T* NewJob = new T(std::forward<args>(arg)...);
+		NewJob->JobHandle = new YJobHandle();
 		if (Depeneces)
 		{
 			for (YJobHandleRef ParentJob : *Depeneces)
@@ -183,13 +187,15 @@ public:
 				}
 			}
 		}
-		NewJob->JobHandle = new YJobHandle();
 		return NewJob;
 	}
 	template<typename T, typename ... args>
 	static T* CreateJob(YJobHandleRef JobRef, std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
 		T* NewJob = new T(std::forward<args>(arg)...);
+		assert(JobRef.IsValid());
+		NewJob->JobHandle.Swap(JobRef);
+		//NewJob->JobHandle = JobRef;
 		if (Depeneces)
 		{
 			for (YJobHandleRef ParentJob : *Depeneces)
@@ -200,7 +206,7 @@ public:
 				}
 			}
 		}
-		NewJob->JobHandle.Swap(JobRef);
+		
 		return NewJob;
 	}
 	YJobHandleRef DispatchJob();
@@ -226,7 +232,8 @@ class YJobNullTask:public YJob
 {
 public:
 	YJobNullTask();
-	virtual void Task(int InThreadID,YJobHandleRef) override;
+
+	virtual void Task(int InThreadID, const YJobHandleRef&) override;
 };
 
 class TrigerEventJob :public YJob
@@ -236,7 +243,7 @@ public:
 	{
 		Event = pEvent;
 	}
-	virtual void Task(int InThreadIDY, YJobHandleRef ThisJobHandle) override;
+	virtual void Task(int InThreadIDY, const YJobHandleRef& ThisJobHandle) override;
 	
 	FEvent* Event;
 };

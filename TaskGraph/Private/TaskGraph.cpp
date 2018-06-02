@@ -905,7 +905,8 @@ public:
 		bCreatedBackgroundPriorityThreads = !!ENamedThreads::bHasBackgroundThreads;
 
 		int MaxTaskThreads = MAX_THREADS;
-		int NumTaskThreads = FPlatformProcess::NumberOfWorkerThreadsToSpawn()+1;
+		//int NumTaskThreads = FPlatformProcess::NumberOfWorkerThreadsToSpawn()+1;
+		int NumTaskThreads = 8;
 
 		// if we don't want any performance-based threads, then force the task graph to not create any worker threads, and run in game thread
 		if (!FPlatformProcess::SupportsMultithreading())
@@ -996,7 +997,7 @@ public:
 				Name += (ThreadIndex - (LastExternalThread + 1));
 				ThreadPri = TPri_BelowNormal; // we want normal tasks below normal threads like the game thread
 			}
-
+			ThreadPri = TPri_Highest;
 #ifndef _DEBUG 
 			unsigned int StackSize = 384 * 1024;
 #else

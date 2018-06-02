@@ -84,7 +84,7 @@ void EndRedirectionIoToFile()
 }
 int main()
 {
-	RedirectionIOToFile();
+	//RedirectionIOToFile();
 	FTaskGraphInterface::Startup(FPlatformProcess::NumberOfCores());
 	FTaskGraphInterface::Get().AttachToThread(ENamedThreads::GameThread);
 	FPlatformTime::InitTiming();
@@ -230,21 +230,21 @@ int main()
 	//FTaskGraphInterface::Get().ProcessThreadUntilIdle(ENamedThreads::GameThread);
 
 	AllocResource();
-	fStart = FPlatformTime::Seconds();
-	Merge();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "merge sort one core cost time " << fEndTime - fStart << std::endl;
+	//fStart = FPlatformTime::Seconds();
+	//Merge();
+	//fEndTime = FPlatformTime::Seconds();
+	//std::cout << "merge sort one core cost time " << fEndTime - fStart << std::endl;
 
-	fStart = FPlatformTime::Seconds();
-	MergeParallel();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "merge sort taskgraph cost time " << fEndTime - fStart << std::endl;
+	//fStart = FPlatformTime::Seconds();
+	//MergeParallel();
+	//fEndTime = FPlatformTime::Seconds();
+	//std::cout << "merge sort taskgraph cost time " << fEndTime - fStart << std::endl;
+	//CompareResult();
 
-	fStart = FPlatformTime::Seconds();
-	QSort();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "qsort cost time " << fEndTime - fStart << std::endl;
-	CompareResult();
+	//fStart = FPlatformTime::Seconds();
+	//QSort();
+	//fEndTime = FPlatformTime::Seconds();
+	//std::cout << "qsort cost time " << fEndTime - fStart << std::endl;
 
 
 	YTaskGraphTest();
@@ -254,6 +254,6 @@ int main()
 	fEndTime = FPlatformTime::Seconds();
 	std::cout << "merge sort YJob cost time " << fEndTime - fStart << std::endl;
 	CompareResultY();
-	EndRedirectionIoToFile();
+	//EndRedirectionIoToFile();
 	std::cout << "EndProcess..." << std::endl;
 }

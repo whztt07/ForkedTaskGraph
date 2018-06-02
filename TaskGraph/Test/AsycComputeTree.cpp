@@ -31,7 +31,7 @@ void MergeSortRecursive(int nStart,int nEnd)
 	MergeSortRecursive(Mid,nEnd);
 	std::inplace_merge(GVector.begin() + nStart, GVector.begin() + Mid, GVector.begin() + nEnd);
 }
-int gCount = 1000000;
+int gCount = 100000000;
 void AllocResource()
 {
 	GVector.reserve(gCount);
@@ -147,7 +147,10 @@ public:
 	{
 
 	}
-	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle)
+private:
+	YMergeJob(const YMergeJob&) = delete;
+	YMergeJob& operator=(const YMergeJob&) = delete;
+	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle)
 	{
 		std::inplace_merge(GVector4.begin() + nStart, GVector4.begin() + nMid, GVector4.begin() + nEnd);
 	}
@@ -159,9 +162,14 @@ public:
 	MergeSortJob(int Start, int End)
 		:nStart(Start)
 		, nEnd(End)
-	{}
+	{
+		//std::cout << "StartJob:[" << nStart<< "   "<<nEnd<<"]"<<std::endl;
+	}
+private:
+	MergeSortJob(const MergeSortJob&) = delete;
+	MergeSortJob& operator=(const MergeSortJob&) = delete;
 
-	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle)
+	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle)
 	{
 		if (nEnd - nStart < 100)
 		{
@@ -169,10 +177,15 @@ public:
 			return;
 		}
 		int Mid = (nStart + nEnd) / 2;
+		//std::cout << "ProcessJob:[" << nStart << "   " << nEnd << "]" << std::endl;
 		YJobHandleRef LeftHalfSoft = YJob::CreateJob<MergeSortJob>(nullptr,nStart, Mid)->DispatchJob();
 		YJobHandleRef RightHalfSoft = YJob::CreateJob<MergeSortJob>(nullptr, Mid, nEnd)->DispatchJob();
-	    std::vector<YJobHandleRef> MergePrerequisites = { LeftHalfSoft, RightHalfSoft };
-		ThisJobHandle->DoNotCompleteUnitl(YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
+		std::vector<YJobHandleRef> MergePrerequisites;
+		MergePrerequisites.push_back(LeftHalfSoft);
+		MergePrerequisites.push_back(RightHalfSoft);
+		//ThisJobHandle->DoNotCompleteUnitl(YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
+		YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd,Mid)->DispatchJob();
+		//ThisJobHandle->DoNotCompleteUnitl(LeftHalfSoft);
 	}
 
 	int nStart;
@@ -186,31 +199,44 @@ void MergeParallelWithY()
 		WaitList.push_back(YJob::CreateJob<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
 		YJob::CreateJob<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
 		// waitfor(Root.GFXWaitForTickComplete);
+		FPlatformProcess::Sleep(10);
 	}
 }
 
 void CompareResult()
 {
-	if (memcmp(&GVector[0], &GVector2[0], sizeof(int)*GVector.size()) == 0)
+	int cmp = GVector2[0];
+	for (int i : GVector2)
 	{
-		std::cout << "march" << std::endl;
+		if (cmp <= i)
+		{
+			cmp = i;
+		}
+		else
+		{
+			std::cout << "TaskGraph unmarch" << std::endl;
+			break;
+		}
 	}
-	else
-	{
-		std::cout << "unmarch" << std::endl;
-	}
+	std::cout << "TaskGraph march" << std::endl;
 }
 
 void CompareResultY()
 {
-	if (memcmp(&GVector[0], &GVector4[0], sizeof(int)*GVector.size()) == 0)
+	int cmp = GVector4[0];
+	for (int i : GVector4)
 	{
-		std::cout << "marchY" << std::endl;
+		if (cmp <= i)
+		{
+			cmp = i;
+		}
+		else
+		{
+			std::cout << "unmarch" << std::endl;
+			break;
+		}
 	}
-	else
-	{
-		std::cout << "unmarch" << std::endl;
-	}
+	std::cout << " YTaskGraph march" << std::endl;
 }
 
 void QSort()

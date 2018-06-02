@@ -59,14 +59,17 @@ public:
 	{
 		while (1)
 		{
-			YJob* JobToDo = JobArray.Pop();
+			YJob* JobToDo = nullptr;
+			{
+				FScopeLock Lock(&CS);
+				JobToDo = 	JobArray.Pop();
+			}
 			if (JobToDo)
 			{
 				IsIdleState = false;
 				FRunnableThread * Thread = FRunnableThread::GetRunnableThread();
 				int ThreadID = Thread->GetThreadID();
 				JobToDo->ExcuteTask(ThreadID);
-				//delete JobToDo;
 			}
 			else
 			{
@@ -77,12 +80,16 @@ public:
 	}
 	void AddJob(YJob* InJob)
 	{
-		int JobsToDoNum = JobArray.Num();
-		JobArray.Push(InJob);
-		if (JobsToDoNum == 0)
-		{
-			EventWaitforIdle->Trigger();
-		}
+		
+			FScopeLock Lock(&CS);
+			size_t JobsToDoNum = JobArray.Num();
+			assert(InJob->GetJobHandle() != nullptr);
+			JobArray.Push(InJob);
+			if (JobsToDoNum == 0)
+			{
+				EventWaitforIdle->Trigger();
+			}
+		
 	}
 	bool IsIdle() const { return IsIdleState; }
 	ThreadSafeLockPointerArray<YJob> JobArray;
@@ -102,15 +109,24 @@ YJob::YJob()
 
 
 
+YJob::~YJob()
+{
+
+}
+
 YJobHandleRef YJob::DispatchJob()
 {
+	assert(JobHandle != nullptr);
+	assert(JobHandle.IsValid());
 	YJobHandleRef JobRefBeforeRelease = JobHandle;
+	JobRefBeforeRelease->AddRef();
 	YTaskGraphInterface::Get().DispatchJob(this);
 	return JobRefBeforeRelease;
 }
 
 void YJob::ExcuteTask(int InThreadI)
 {
+	//assert(JobHandle.IsValid());
 	assert(!JobHandle->WaitForJobs.size());
 	Task(InThreadI,JobHandle);
 	JobHandle->DispatchSubsequents();
@@ -119,6 +135,7 @@ void YJob::ExcuteTask(int InThreadI)
 
 YJobHandleRef YJob::GetJobHandle()
 {
+	//assert(JobHandle.IsValid());
 	return JobHandle;
 }
 
@@ -220,7 +237,6 @@ void YJobHandle::DispatchSubsequents()
 	std::vector<YJob*> ChildrenJobs = SubsequenceJobs.GetArrayValueAndClosed();
 	for (YJob* ChildJob : ChildrenJobs)
 	{
-		assert(ChildJob);
 		YTaskGraphInterface::Get().DispatchJob(ChildJob);
 	}
 }
@@ -245,7 +261,7 @@ YJobNullTask::YJobNullTask()
 
 }
 
-void YJobNullTask::Task(int InThreadID,YJobHandleRef)
+void YJobNullTask::Task(int InThreadID, const YJobHandleRef&)
 {
 
 }
@@ -259,7 +275,7 @@ public:
 	{
 		nData = 0;
 	}
-	virtual void Task(int InThreadID, YJobHandleRef ThisJobHandle) override
+	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) override
 	{
 		if (ParentJob)
 		{
@@ -297,7 +313,7 @@ public:
 			{
 				pMainGFX = pGFX;
 			}
-			virtual  void Task(int InThreadID, YJobHandleRef ThisJobHandle) override
+			virtual  void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) override
 			{
 				assert(pMainGFX);
 				std::cout << "gfx[" << pMainGFX->Name << "] is tick" << std::endl;
@@ -327,24 +343,24 @@ public:
 void YTaskGraphTest()
 {
 	YTaskGraphInterface::Startup(4);
-	DependentJob* Job0 = YJob::CreateJob<DependentJob>(nullptr, nullptr);
-	std::vector<YJobHandleRef> Parent;
-	Parent.clear();
-	Parent.push_back(Job0->GetJobHandle());
-	DependentJob* Job1 = YJob::CreateJob<DependentJob>(&Parent, Job0);
-	Parent.clear();
-	Parent.push_back(Job1->GetJobHandle());
-	DependentJob* Job2 = YJob::CreateJob<DependentJob>(&Parent, Job1);
-	YTaskGraphInterface::Get().DispatchJob(Job2);
-	YTaskGraphInterface::Get().DispatchJob(Job1);
-	YTaskGraphInterface::Get().DispatchJob(Job0);
-	Parent.clear();
-	Parent.push_back(Job2->GetJobHandle());
-	{
-		FScopedEvent Event;
-		TrigerEventJob* JobEvent = YJob::CreateJob<TrigerEventJob>(&Parent, Event.Get());
-		YTaskGraphInterface::Get().DispatchJob(JobEvent);
-	}
+	//DependentJob* Job0 = YJob::CreateJob<DependentJob>(nullptr, nullptr);
+	//std::vector<YJobHandleRef> Parent;
+	//Parent.clear();
+	//Parent.push_back(Job0->GetJobHandle());
+	//DependentJob* Job1 = YJob::CreateJob<DependentJob>(&Parent, Job0);
+	//Parent.clear();
+	//Parent.push_back(Job1->GetJobHandle());
+	//DependentJob* Job2 = YJob::CreateJob<DependentJob>(&Parent, Job1);
+	//YTaskGraphInterface::Get().DispatchJob(Job2);
+	//YTaskGraphInterface::Get().DispatchJob(Job1);
+	//YTaskGraphInterface::Get().DispatchJob(Job0);
+	//Parent.clear();
+	//Parent.push_back(Job2->GetJobHandle());
+	//{
+	//	FScopedEvent Event;
+	//	TrigerEventJob* JobEvent = YJob::CreateJob<TrigerEventJob>(&Parent, Event.Get());
+	//	YTaskGraphInterface::Get().DispatchJob(JobEvent);
+	//}
 
 	std::cout << "Begin do dependance job" << std::endl;
 	//                     Root
@@ -442,19 +458,19 @@ void YTaskGraphTest()
 	G.Children.push_back(&M);
 
 
-	Root.Tick();
+	//Root.Tick();
 
-	{
+	/*{
 		FScopedEvent Event;
 		Parent.clear();
 		Parent.push_back(Root.GFXWaitForTickComplelte);
 		TrigerEventJob* JobEvent = YJob::CreateJob<TrigerEventJob>(&Parent, Event.Get());
 		YTaskGraphInterface::Get().DispatchJob(JobEvent);
-	}
+	}*/
 
 }
 
-void TrigerEventJob::Task(int InThreadIDY, YJobHandleRef ThisJobHandle)
+void TrigerEventJob::Task(int InThreadIDY, const YJobHandleRef& ThisJobHandle)
 {
 	if (Event)
 	{
