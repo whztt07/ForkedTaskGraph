@@ -13,17 +13,13 @@ template<typename T>
 class ThreadSafeLockPointerArray
 {
 public:
-	ThreadSafeLockPointerArray()
-	{
-
-	}
+	ThreadSafeLockPointerArray(){}
 
 	inline T*  Pop()
 	{
 		FScopeLock Lock(&CriticalSection);
 		if (InternalArray.size() == 0)
 		{
-			//aseert(0);
 			return nullptr;
 		}
 		else
@@ -66,10 +62,9 @@ public:
 			{
 				return tmp;
 			}
-			tmp = InternalArray;
-			InternalArray.clear();
+			tmp.swap(InternalArray);
 			ClosedFlags.Set(1);
-		return tmp;
+			return std::move(tmp);
 	}
 	inline bool AddIfNotClosed(T* Value)
 	{
@@ -156,8 +151,8 @@ public:
 	void DispatchSubsequents();
 	bool IsComplelte() ;
 private:
-	YJobHandle();
-	~YJobHandle();
+	YJobHandle() {};
+	~YJobHandle() {};
 	bool AddChildJob(YJob* Child);
 	std::vector<YJobHandleRef>		   WaitForJobs;
 	FThreadSafeCounter ReferenceCount;
@@ -169,46 +164,38 @@ class YJob
 	friend class YTaskGraphInterface;
 	friend class YTaskGraphInterfaceImplement;
 public:
-	YJob();
-	virtual ~YJob();
+	YJob() { PrerequistsCounter.Set(1); };
+	virtual ~YJob() {};
 	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) = 0;
-	template<typename T,typename ... args>
-	static T* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
-	{
-		T* NewJob = new T(std::forward<args>(arg)...);
-		NewJob->JobHandle = new YJobHandle();
-		if (Depeneces)
-		{
-			for (YJobHandleRef ParentJob : *Depeneces)
-			{
-				if (ParentJob->SubsequenceJobs.AddIfNotClosed(NewJob))
-				{
-					NewJob->PrerequistsCounter.Increment();
-				}
-			}
-		}
-		return NewJob;
-	}
+	
 	template<typename T, typename ... args>
-	static T* CreateJob(YJobHandleRef JobRef, std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
+	static T* CreateJob(YJobHandleRef JobRef, const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
 		T* NewJob = new T(std::forward<args>(arg)...);
-		assert(JobRef.IsValid());
 		NewJob->JobHandle.Swap(JobRef);
-		//NewJob->JobHandle = JobRef;
+		int nWaitFor = 0;
 		if (Depeneces)
 		{
+			NewJob->PrerequistsCounter.Add(Depeneces->size());
 			for (YJobHandleRef ParentJob : *Depeneces)
 			{
-				if (ParentJob->SubsequenceJobs.AddIfNotClosed(NewJob))
+				if (!ParentJob->SubsequenceJobs.AddIfNotClosed(NewJob))
 				{
-					NewJob->PrerequistsCounter.Increment();
+					++nWaitFor;
 				}
 			}
+			NewJob->PrerequistsCounter.Subtract(nWaitFor);
 		}
 		
 		return NewJob;
 	}
+
+	template<typename T, typename ... args>
+	static T* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
+	{
+		return CreateJob<T>(YJobHandleRef(new YJobHandle), Depeneces, std::forward<args>(arg)...);
+	}
+
 	YJobHandleRef DispatchJob();
 	YJobHandleRef GetJobHandle();
 	void ExcuteTask(int InThreadI);
@@ -231,9 +218,9 @@ public:
 class YJobNullTask:public YJob
 {
 public:
-	YJobNullTask();
+	YJobNullTask() {};
 
-	virtual void Task(int InThreadID, const YJobHandleRef&) override;
+	virtual void Task(int InThreadID, const YJobHandleRef&) override {};
 };
 
 class TrigerEventJob :public YJob

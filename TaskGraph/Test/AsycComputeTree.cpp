@@ -147,6 +147,7 @@ public:
 	{
 
 	}
+	virtual ~YMergeJob() {}
 private:
 	YMergeJob(const YMergeJob&) = delete;
 	YMergeJob& operator=(const YMergeJob&) = delete;
@@ -165,6 +166,7 @@ public:
 	{
 		//std::cout << "StartJob:[" << nStart<< "   "<<nEnd<<"]"<<std::endl;
 	}
+	virtual ~MergeSortJob() {}
 private:
 	MergeSortJob(const MergeSortJob&) = delete;
 	MergeSortJob& operator=(const MergeSortJob&) = delete;
