@@ -158,7 +158,7 @@ public:
 
 void YTaskGraphTest()
 {
-	YTaskGraphInterface::Startup(4);
+
 	//DependentJob* Job0 = YJob::CreateJob<DependentJob>(nullptr, nullptr);
 	//std::vector<YJobHandleRef> Parent;
 	//Parent.clear();
@@ -294,24 +294,24 @@ int main()
 	FPlatformTime::InitTiming();
 	const int nStep = 10;
 	const int nTask = 3000;
-	for (int i = 0; i < nTask; ++i)
+	/*for (int i = 0; i < nTask; ++i)
 	{
 		GPrimeResult.push_back(std::vector<int>());
-	}
+	}*/
 	double fStart = FPlatformTime::Seconds();
-	std::vector<FGraphEventRef> Result;
-	for (int i = 0; i < nTask; ++i)
-	{
-		int nStart = i*nStep;
-		int nEnd = (i + 1)*nStep;
-		Result.push_back(TGraphTask<FindPrim>::CreateTask(NULL, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(nStart, nEnd, i));
-	}
+	//std::vector<FGraphEventRef> Result;
+	//for (int i = 0; i < nTask; ++i)
+	//{
+	//	int nStart = i*nStep;
+	//	int nEnd = (i + 1)*nStep;
+	//	Result.push_back(TGraphTask<FindPrim>::CreateTask(NULL, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(nStart, nEnd, i));
+	//}
 
-	{
-		FScopedEvent WaitForTasks;
-		TGraphTask<FTriggerEventGraphTask>::CreateTask(&Result, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(WaitForTasks.Get());
-	}
-	
+	//{
+	//	FScopedEvent WaitForTasks;
+	//	TGraphTask<FTriggerEventGraphTask>::CreateTask(&Result, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(WaitForTasks.Get());
+	//}
+	//
 	double fEndTime = FPlatformTime::Seconds();
 	std::cout<<"cost time "<<fEndTime - fStart<<std::endl;
 	/*int BreakStep = 0;
@@ -423,41 +423,39 @@ int main()
 	G.Children.push_back(&M);
 
 
-	Root.Tick();
+	/*Root.Tick();
 	
 	std::vector<FGraphEventRef> WaitList;
 	WaitList.push_back(Root.GFXWaitForTickComplete);
 	TGraphTask<FReturnGraphTask>::CreateTask(&WaitList, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(ENamedThreads::GameThread);
 	FTaskGraphInterface::Get().ProcessThreadUntilRequestReturn(ENamedThreads::GameThread);
 
-	std::cout<<"End do dependance job\n"<<std::endl;
+	std::cout<<"End do dependance job\n"<<std::endl;*/
 	//FTaskGraphInterface::Get().ProcessThreadUntilIdle(ENamedThreads::GameThread);
 
-	AllocResource();
-	//fStart = FPlatformTime::Seconds();
-	//Merge();
-	//fEndTime = FPlatformTime::Seconds();
-	//std::cout << "merge sort one core cost time " << fEndTime - fStart << std::endl;
-
-	fStart = FPlatformTime::Seconds();
-	MergeParallel();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "merge sort taskgraph cost time " << fEndTime - fStart << std::endl;
-	CompareResult();
-
-	//fStart = FPlatformTime::Seconds();
-	//QSort();
-	//fEndTime = FPlatformTime::Seconds();
-	//std::cout << "qsort cost time " << fEndTime - fStart << std::endl;
-
-
-	YTaskGraphTest();
-	
-	fStart = FPlatformTime::Seconds();
-	MergeParallelWithY();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "merge sort YJob cost time " << fEndTime - fStart << std::endl;
-	CompareResultY();
+	YTaskGraphInterface::Startup(4);
+	TestFeb();
+	float FTaskGraphTotalTime = 0;
+	float YTaskGraphTotalTime = 0;
+	/*AllocResource();
+	for (int i = 0; i < 20; ++i)
+	{
+		fStart = FPlatformTime::Seconds();
+		MergeParallel();
+		fEndTime = FPlatformTime::Seconds();
+		std::cout << "merge sort taskgraph cost time " << fEndTime - fStart << std::endl;
+		FTaskGraphTotalTime += (fEndTime - fStart);
+		CompareResult();
+		YTaskGraphTest();
+		fStart = FPlatformTime::Seconds();
+		MergeParallelWithY();
+		fEndTime = FPlatformTime::Seconds();
+		std::cout << "merge sort YJob cost time " << fEndTime - fStart << std::endl;
+		YTaskGraphTotalTime += (fEndTime - fStart);
+		CompareResultY();
+	}*/
 	//EndRedirectionIoToFile();
 	std::cout << "EndProcess..." << std::endl;
+	std::cout << "FTaskGraphAverageTime: " << FTaskGraphTotalTime / 20.0f << std::endl;
+	std::cout << "YTaskGraphAverageTime: " << YTaskGraphTotalTime / 20.0f << std::endl;
 }

@@ -31,7 +31,7 @@ void MergeSortRecursive(int nStart,int nEnd)
 	MergeSortRecursive(Mid,nEnd);
 	std::inplace_merge(GVector.begin() + nStart, GVector.begin() + Mid, GVector.begin() + nEnd);
 }
-int gCount = 100000000;
+int gCount = 10000000;
 void AllocResource()
 {
 	GVector.reserve(gCount);
@@ -48,11 +48,6 @@ void AllocResource()
 void Merge()
 {
 	MergeSortRecursive(0, gCount);
-
-	/*for (int i : GVector)
-	{
-		std::cout << i << "   ";
-	}*/
 }
 
 
@@ -101,7 +96,7 @@ public:
 	}
 	void DoTask(ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
 	{
-		if (nEnd - nStart < 100)
+		if (nEnd - nStart <3) 
 		{
 			std::sort(GVector2.begin() + nStart, GVector2.begin() + nEnd);
 			return;
@@ -120,18 +115,10 @@ public:
 
 void MergeParallel()
 {
-
-	{
 		FScopedEvent WaitForTasks;
 		std::vector<FGraphEventRef> WaitList;
 		WaitList.push_back(TGraphTask<MergeSortTask>::CreateTask(nullptr, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(0, gCount));
 		TGraphTask<FTriggerEventGraphTask>::CreateTask(&WaitList, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(WaitForTasks.Get());
-		// waitfor(Root.GFXWaitForTickComplete);
-	}
-	/*for (int i : GVector2)
-	{
-	std::cout << i << "   ";
-	}*/
 }
 
 class YMergeJob : public YJob
@@ -164,7 +151,6 @@ public:
 		:nStart(Start)
 		, nEnd(End)
 	{
-		//std::cout << "StartJob:[" << nStart<< "   "<<nEnd<<"]"<<std::endl;
 	}
 	virtual ~MergeSortJob() {}
 private:
@@ -173,21 +159,18 @@ private:
 
 	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle)
 	{
-		if (nEnd - nStart < 100)
+		if (nEnd - nStart < 3)
 		{
 			std::sort(GVector4.begin() + nStart, GVector4.begin() + nEnd);
 			return;
 		}
 		int Mid = (nStart + nEnd) / 2;
-		//std::cout << "ProcessJob:[" << nStart << "   " << nEnd << "]" << std::endl;
 		YJobHandleRef LeftHalfSoft = YJob::CreateJob<MergeSortJob>(nullptr,nStart, Mid)->DispatchJob();
 		YJobHandleRef RightHalfSoft = YJob::CreateJob<MergeSortJob>(nullptr, Mid, nEnd)->DispatchJob();
 		std::vector<YJobHandleRef> MergePrerequisites;
 		MergePrerequisites.push_back(LeftHalfSoft);
 		MergePrerequisites.push_back(RightHalfSoft);
 		ThisJobHandle->DoNotCompleteUnitl(YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
-		//YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd,Mid)->DispatchJob();
-		//ThisJobHandle->DoNotCompleteUnitl(LeftHalfSoft);
 	}
 
 	int nStart;
@@ -200,8 +183,6 @@ void MergeParallelWithY()
 		std::vector<YJobHandleRef> WaitList;
 		WaitList.push_back(YJob::CreateJob<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
 		YJob::CreateJob<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
-		// waitfor(Root.GFXWaitForTickComplete);
-		//FPlatformProcess::Sleep(10);
 	}
 }
 

@@ -153,6 +153,7 @@ YTaskGraphInterfaceImplement::YTaskGraphInterfaceImplement()
 		Threads.push_back((YTaskGraphThread*)YTaskGraphThread::Create(ThreadProcs[i], TEXT("AnyThread")));
 	}
 	ThreadToDispatchImp.Reset();
+	YJobHandle::GetClassCount().Reset();
 }
 
 YTaskGraphInterface& YTaskGraphInterface::Get()
@@ -206,3 +207,5 @@ void TrigerEventJob::Task(int InThreadIDY, const YJobHandleRef& ThisJobHandle)
 		Event->Trigger();
 	}
 }
+
+FThreadSafeCounter   YJobHandle::DebugForMemoryLose;

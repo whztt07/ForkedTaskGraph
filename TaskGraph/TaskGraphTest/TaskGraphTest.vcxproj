@@ -101,13 +101,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;CORE_API=__declspec(dllimport);_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\public</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\public;;..\ThirdParty\tbb-2017_U5\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>TaskGraph_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\bin\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TaskGraph_d.lib;tbbmalloc_debug.lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\bin\$(Platform)\$(Configuration)\;..\ThirdParty\tbb-2017_U5\lib\x64\v140</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -132,24 +132,28 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;CORE_API=__declspec(dllimport);NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\public;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\public;;..\ThirdParty\tbb-2017_U5\include</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\bin\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>TaskGraph.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\bin\$(Platform)\$(Configuration)\;..\ThirdParty\tbb-2017_U5\lib\x64\v140</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TaskGraph.lib;tbbmalloc.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Test\AsycComputeTree.cpp" />
+    <ClCompile Include="..\Test\FebTask.cpp" />
     <ClCompile Include="..\Test\GFX.cpp" />
+    <ClCompile Include="..\Test\tbbmalloc.cpp" />
     <ClCompile Include="..\Test\Test.cpp" />
     <ClCompile Include="..\Test\YTaskGraph.cpp" />
   </ItemGroup>

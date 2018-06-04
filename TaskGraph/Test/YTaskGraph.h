@@ -150,13 +150,15 @@ public:
 	void DoNotCompleteUnitl(YJobHandleRef JobHandleToWaitFor);
 	void DispatchSubsequents();
 	bool IsComplelte() ;
+	static FThreadSafeCounter&  GetClassCount() { return DebugForMemoryLose; }
 private:
-	YJobHandle() {};
-	~YJobHandle() {};
+	YJobHandle() { /*DebugForMemoryLose.Increment();*/ };
+	~YJobHandle() {/* DebugForMemoryLose.Decrement();*/ };
 	bool AddChildJob(YJob* Child);
 	std::vector<YJobHandleRef>		   WaitForJobs;
 	FThreadSafeCounter ReferenceCount;
 	ThreadSafeLockPointerArrayCloseable<YJob>  SubsequenceJobs;
+	static FThreadSafeCounter   DebugForMemoryLose;
 };
 
 class YJob
@@ -176,7 +178,7 @@ public:
 		int nWaitFor = 0;
 		if (Depeneces)
 		{
-			NewJob->PrerequistsCounter.Add(Depeneces->size());
+			NewJob->PrerequistsCounter.Add((int)Depeneces->size());
 			for (YJobHandleRef ParentJob : *Depeneces)
 			{
 				if (!ParentJob->SubsequenceJobs.AddIfNotClosed(NewJob))

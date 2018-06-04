@@ -51,6 +51,9 @@
     <ClCompile Include="..\Private\WindowsPlatformTime.cpp">
       <Filter>Private</Filter>
     </ClCompile>
+    <ClCompile Include="..\Private\tbbmalloc.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Public\RefCounting.h">

@@ -55,11 +55,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;CORE_API=__declspec(dllexport);_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Public</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Public;;..\ThirdParty\tbb-2017_U5\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\ThirdParty\tbb-2017_U5\lib\x64\v140;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>tbbmalloc_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -71,19 +73,22 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;CORE_API=__declspec(dllexport);NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Public;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Public;%(AdditionalIncludeDirectories);..\ThirdParty\tbb-2017_U5\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\ThirdParty\tbb-2017_U5\lib\x64\v140;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>tbbmalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Private\LockFreeList.cpp" />
     <ClCompile Include="..\Private\TaskGraph.cpp" />
     <ClCompile Include="..\Private\TaskGraphCommon.cpp" />
+    <ClCompile Include="..\Private\tbbmalloc.cpp" />
     <ClCompile Include="..\Private\ThreadingBase.cpp" />
     <ClCompile Include="..\Private\WindowsPlatformProcess.cpp" />
     <ClCompile Include="..\Private\WindowsPlatformTime.cpp" />
