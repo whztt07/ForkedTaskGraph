@@ -156,7 +156,7 @@ private:
 	bool AddChildJob(ITask* Child);
 	std::vector<YJobHandleRef>		   WaitForJobs;
 	FThreadSafeCounter ReferenceCount;
-	ThreadSafeLockPointerArrayCloseable<ITask>  SubsequenceJobs;
+	ThreadSafeLockPointerArrayCloseable<ITask>  Childrens;
 };
 
 class ITask
@@ -164,7 +164,7 @@ class ITask
 	friend class YTaskGraphInterface;
 	friend class YTaskGraphInterfaceImplement;
 public:
-	ITask() { PrerequistsCounter.Set(1); };
+	ITask() { ParentsNum.Set(1); };
 	virtual ~ITask() {};
 	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) = 0;
 	
@@ -172,19 +172,19 @@ public:
 	static T* CreateJob(YJobHandleRef JobRef, const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
 		T* NewJob = new T(std::forward<args>(arg)...);
-		NewJob->JobHandle.Swap(JobRef);
+		NewJob->Handle.Swap(JobRef);
 		int nWaitFor = 0;
 		if (Depeneces)
 		{
-			NewJob->PrerequistsCounter.Add(Depeneces->size());
+			NewJob->ParentsNum.Add(Depeneces->size());
 			for (YJobHandleRef ParentJob : *Depeneces)
 			{
-				if (!ParentJob->SubsequenceJobs.AddIfNotClosed(NewJob))
+				if (!ParentJob->Childrens.AddIfNotClosed(NewJob))
 				{
 					++nWaitFor;
 				}
 			}
-			NewJob->PrerequistsCounter.Subtract(nWaitFor);
+			NewJob->ParentsNum.Subtract(nWaitFor);
 		}
 		
 		return NewJob;
@@ -200,8 +200,8 @@ public:
 	YJobHandleRef GetJobHandle();
 	void ExcuteTask(int InThreadI);
 private:
-	FThreadSafeCounter  PrerequistsCounter;
-	YJobHandleRef       JobHandle;
+	FThreadSafeCounter  ParentsNum;
+	YJobHandleRef       Handle;
 };
 
 class YTaskGraphInterface

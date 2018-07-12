@@ -76,22 +76,22 @@ public:
 
 YJobHandleRef ITask::DispatchJob()
 {
-	YJobHandleRef JobRefBeforeRelease = JobHandle;
+	YJobHandleRef JobRefBeforeRelease = Handle;
 	YTaskGraphInterface::Get().DispatchJob(this);
 	return JobRefBeforeRelease;
 }
 
 void ITask::ExcuteTask(int InThreadI)
 {
-	assert(!JobHandle->WaitForJobs.size());
-	Task(InThreadI,JobHandle);
-	JobHandle->DispatchSubsequents();
+	assert(!Handle->WaitForJobs.size());
+	Task(InThreadI,Handle);
+	Handle->DispatchSubsequents();
 	delete this;
 }
 
 YJobHandleRef ITask::GetJobHandle()
 {
-	return JobHandle;
+	return Handle;
 }
 
 class YTaskGraphInterfaceImplement : public YTaskGraphInterface
@@ -108,7 +108,7 @@ private:
 
 void YTaskGraphInterfaceImplement::DispatchJob(ITask * JobToDispatch)
 {
-	if (JobToDispatch->PrerequistsCounter.Decrement() == 0)
+	if (JobToDispatch->ParentsNum.Decrement() == 0)
 	{
 		EnqueueJob(JobToDispatch);
 	}
@@ -167,13 +167,13 @@ void TaskHandle::DoNotCompleteUnitl(YJobHandleRef JobHandleToWaitFor)
 
 bool TaskHandle::AddChildJob(ITask* Child)
 {
-	if (SubsequenceJobs.IsClosed())
+	if (Childrens.IsClosed())
 	{
 		return false;
 	}
 	else
 	{
-		SubsequenceJobs.Push(Child);
+		Childrens.Push(Child);
 		return true;
 	}
 }
@@ -187,7 +187,7 @@ void TaskHandle::DispatchSubsequents()
 		ITask::CreateJob<YJobNullTask>(YJobHandleRef(this), &Tmp)->DispatchJob();
 		return;
 	}
-	std::vector<ITask*> ChildrenJobs = SubsequenceJobs.GetArrayValueAndClosed();
+	std::vector<ITask*> ChildrenJobs = Childrens.GetArrayValueAndClosed();
 	for (ITask* ChildJob : ChildrenJobs)
 	{
 		YTaskGraphInterface::Get().DispatchJob(ChildJob);
@@ -196,7 +196,7 @@ void TaskHandle::DispatchSubsequents()
 
 bool TaskHandle::IsComplelte()
 {
-	return SubsequenceJobs.IsClosed();
+	return Childrens.IsClosed();
 }
 
 void TrigerEventJob::Task(int InThreadIDY, const YJobHandleRef& ThisJobHandle)
