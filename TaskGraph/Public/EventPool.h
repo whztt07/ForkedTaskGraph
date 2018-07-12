@@ -104,7 +104,7 @@ public:
 			
 				Result = FPlatformProcess::CreateSynchEvent((PoolType == EEventPoolTypes::ManualReset));
 		}
-		Result->AdvanceStats();
+		//Result->AdvanceStats();
 
 		assert(Result);
 		return new FSafeRecyclableEvent(Result);

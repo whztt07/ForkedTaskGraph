@@ -220,13 +220,13 @@ FThreadManager& FThreadManager::Get()
 
 unsigned int FEvent::EventUniqueId = 0;
 
-void FEvent::AdvanceStats()
-{
-//#if	STATS
-//	EventId = FPlatformAtomics::InterlockedAdd( (int*)&EventUniqueId, 1 );
-//	EventStartCycles = 0;
-//#endif // STATS
-}
+//void FEvent::AdvanceStats()
+//{
+////#if	STATS
+////	EventId = FPlatformAtomics::InterlockedAdd( (int*)&EventUniqueId, 1 );
+////	EventStartCycles = 0;
+////#endif // STATS
+//}
 
 void FEvent::WaitForStats()
 {

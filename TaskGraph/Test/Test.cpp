@@ -13,6 +13,7 @@
 #include <vector>
 #include "YTaskGraph.h"
 #include <fstream>
+#include "EventPool.h"
 
 bool IsPrim(int n)
 {
@@ -461,11 +462,13 @@ int main()
 	Root.Tick();
 
 	{
-		FScopedEvent Event;
+		FEvent* pEvent = FEventPool<EEventPoolTypes::AutoReset>::Get().GetEventFromPool();
 		std::vector<YJobHandleRef>   Parent;
 		Parent.push_back(Root.GFXWaitForTickComplelte);
-		TrigerEventJob* JobEvent = ITask::CreateJob<TrigerEventJob>(&Parent, Event.Get());
+		TrigerEventJob* JobEvent = ITask::CreateJob<TrigerEventJob>(&Parent, pEvent);
 		YTaskGraphInterface::Get().DispatchJob(JobEvent);
+		pEvent->Wait();
+		FEventPool<EEventPoolTypes::AutoReset>::Get().ReturnToPool(pEvent);
 	}
 
 	double fEndTime = FPlatformTime::Seconds();

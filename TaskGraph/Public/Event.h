@@ -93,7 +93,7 @@ public:
 	// DO NOT MODIFY THESE
 
 	/** Advances stats associated with this event. Used to monitor wait->trigger history. */
-	void AdvanceStats();
+	//void AdvanceStats();
 
 protected:
 	/** Sends to the stats a special messages which encodes a wait for the event. */
