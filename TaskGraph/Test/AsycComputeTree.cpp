@@ -168,12 +168,12 @@ private:
 			return;
 		}
 		int Mid = (nStart + nEnd) / 2;
-		YJobHandleRef LeftHalfSoft = ITask::CreateJob<MergeSortJob>(nullptr,nStart, Mid)->DispatchJob();
-		YJobHandleRef RightHalfSoft = ITask::CreateJob<MergeSortJob>(nullptr, Mid, nEnd)->DispatchJob();
+		YJobHandleRef LeftHalfSoft = ITask::CreateTask<MergeSortJob>(nullptr,nStart, Mid)->DispatchJob();
+		YJobHandleRef RightHalfSoft = ITask::CreateTask<MergeSortJob>(nullptr, Mid, nEnd)->DispatchJob();
 		std::vector<YJobHandleRef> MergePrerequisites;
 		MergePrerequisites.push_back(LeftHalfSoft);
 		MergePrerequisites.push_back(RightHalfSoft);
-		ThisJobHandle->DoNotCompleteUnitl(ITask::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
+		ThisJobHandle->DoNotCompleteUnitl(ITask::CreateTask<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
 	}
 
 	int nStart;
@@ -184,8 +184,8 @@ void MergeParallelWithY()
 	{
 		FScopedEvent WaitForTasks;
 		std::vector<YJobHandleRef> WaitList;
-		WaitList.push_back(ITask::CreateJob<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
-		ITask::CreateJob<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
+		WaitList.push_back(ITask::CreateTask<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
+		ITask::CreateTask<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
 	}
 }
 

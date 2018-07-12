@@ -111,14 +111,14 @@ private:
 void YTaskGraphTest()
 {
 	
-	//DependentJob* Job0 = YJob::CreateJob<DependentJob>(nullptr, nullptr);
+	//DependentJob* Job0 = YJob::CreateTask<DependentJob>(nullptr, nullptr);
 	//std::vector<YJobHandleRef> Parent;
 	//Parent.clear();
 	//Parent.push_back(Job0->GetJobHandle());
-	//DependentJob* Job1 = YJob::CreateJob<DependentJob>(&Parent, Job0);
+	//DependentJob* Job1 = YJob::CreateTask<DependentJob>(&Parent, Job0);
 	//Parent.clear();
 	//Parent.push_back(Job1->GetJobHandle());
-	//DependentJob* Job2 = YJob::CreateJob<DependentJob>(&Parent, Job1);
+	//DependentJob* Job2 = YJob::CreateTask<DependentJob>(&Parent, Job1);
 	//YTaskGraphInterface::Get().DispatchJob(Job2);
 	//YTaskGraphInterface::Get().DispatchJob(Job1);
 	//YTaskGraphInterface::Get().DispatchJob(Job0);
@@ -126,7 +126,7 @@ void YTaskGraphTest()
 	//Parent.push_back(Job2->GetJobHandle());
 	//{
 	//	FScopedEvent Event;
-	//	TrigerEventJob* JobEvent = YJob::CreateJob<TrigerEventJob>(&Parent, Event.Get());
+	//	TrigerEventJob* JobEvent = YJob::CreateTask<TrigerEventJob>(&Parent, Event.Get());
 	//	YTaskGraphInterface::Get().DispatchJob(JobEvent);
 	//}
 
