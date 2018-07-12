@@ -127,7 +127,7 @@ int main()
 					for (YGFX* pChild : pMainGFX->Children)
 					{
 						//TGraphTask<GFXTickTask>::CreateTask(nullptr, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(pChild);
-						YGFXJob* pJob = ITask::CreateJob<YGFXJob>(nullptr, pChild);
+						YGFXJob* pJob = ITask::CreateTask<YGFXJob>(nullptr, pChild);
 						YJobHandleRef ChildJobHandle = pJob->DispatchJob();
 						ThisJobHandle->DoNotCompleteUnitl(ChildJobHandle);
 					}
@@ -135,7 +135,7 @@ int main()
 				YGFX* pMainGFX;
 			};
 
-			GFXWaitForTickComplelte = ITask::CreateJob<YGFXJob>(nullptr, this)->DispatchJob();
+			GFXWaitForTickComplelte = ITask::CreateTask<YGFXJob>(nullptr, this)->DispatchJob();
 		}
 
 	};
@@ -243,7 +243,7 @@ int main()
 		FEvent* pEvent = FEventPool<EEventPoolTypes::AutoReset>::Get().GetEventFromPool();
 		std::vector<YJobHandleRef>   Parent;
 		Parent.push_back(Root.GFXWaitForTickComplelte);
-		TrigerEventJob* JobEvent = ITask::CreateJob<TrigerEventJob>(&Parent, pEvent);
+		TrigerEventJob* JobEvent = ITask::CreateTask<TrigerEventJob>(&Parent, pEvent);
 		YTaskGraphInterface::Get().DispatchJob(JobEvent);
 		pEvent->Wait();
 		FEventPool<EEventPoolTypes::AutoReset>::Get().ReturnToPool(pEvent);

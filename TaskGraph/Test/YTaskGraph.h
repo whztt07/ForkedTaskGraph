@@ -169,7 +169,7 @@ public:
 	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) = 0;
 	
 	template<typename T, typename ... args>
-	static T* CreateJob(YJobHandleRef JobRef, const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
+	static T* CreateTask(YJobHandleRef JobRef, const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
 		T* NewJob = new T(std::forward<args>(arg)...);
 		NewJob->Handle.Swap(JobRef);
@@ -191,9 +191,9 @@ public:
 	}
 
 	template<typename T, typename ... args>
-	static T* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
+	static T* CreateTask(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
-		return CreateJob<T>(YJobHandleRef(new TaskHandle), Depeneces, std::forward<args>(arg)...);
+		return CreateTask<T>(YJobHandleRef(new TaskHandle), Depeneces, std::forward<args>(arg)...);
 	}
 
 	YJobHandleRef DispatchJob();

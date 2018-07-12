@@ -184,7 +184,7 @@ void TaskHandle::DispatchSubsequents()
 	{
 		std::vector<YJobHandleRef> Tmp;
 		Tmp.swap(WaitForJobs);
-		ITask::CreateJob<YJobNullTask>(YJobHandleRef(this), &Tmp)->DispatchJob();
+		ITask::CreateTask<YJobNullTask>(YJobHandleRef(this), &Tmp)->DispatchJob();
 		return;
 	}
 	std::vector<ITask*> ChildrenJobs = Childrens.GetArrayValueAndClosed();
