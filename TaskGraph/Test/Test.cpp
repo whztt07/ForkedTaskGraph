@@ -125,14 +125,14 @@ int main()
 
 					for (YGFX* pChild : pMainGFX->Children)
 					{
-						YGFXJob* pJob = ITask::CreateJob<YGFXJob>(nullptr, pChild);
+						YGFXJob* pJob = ITask::CreateTask<YGFXJob>(nullptr, pChild);
 						pJob->DispatchJob();
 					}
 				}
 				YGFX* pMainGFX;
 			};
 
-			GFXWaitForTickComplelte = ITask::CreateJob<YGFXJob>(nullptr, this)->DispatchJob();
+			GFXWaitForTickComplelte = ITask::CreateTask<YGFXJob>(nullptr, this)->DispatchJob();
 		}
 
 	};
