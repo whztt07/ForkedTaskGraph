@@ -121,15 +121,15 @@ public:
 	FCriticalSection CriticalSection;
 };
 
-class YJob;
+class ITask;
 
-typedef TRefCountPtr<class YJobHandle> YJobHandleRef;
-class YJobHandle
+typedef TRefCountPtr<class TaskHandle> YJobHandleRef;
+class TaskHandle
 {
 public:
 	friend class YTaskGraphInterface;
 	friend class YTaskGraphInterfaceImplement;
-	friend class YJob;
+	friend class ITask;
 	unsigned int AddRef()
 	{
 		int RefCount = ReferenceCount.Increment();
@@ -151,21 +151,21 @@ public:
 	void DispatchSubsequents();
 	bool IsComplelte() ;
 private:
-	YJobHandle() {};
-	~YJobHandle() {};
-	bool AddChildJob(YJob* Child);
+	TaskHandle() {};
+	~TaskHandle() {};
+	bool AddChildJob(ITask* Child);
 	std::vector<YJobHandleRef>		   WaitForJobs;
 	FThreadSafeCounter ReferenceCount;
-	ThreadSafeLockPointerArrayCloseable<YJob>  SubsequenceJobs;
+	ThreadSafeLockPointerArrayCloseable<ITask>  SubsequenceJobs;
 };
 
-class YJob
+class ITask
 {
 	friend class YTaskGraphInterface;
 	friend class YTaskGraphInterfaceImplement;
 public:
-	YJob() { PrerequistsCounter.Set(1); };
-	virtual ~YJob() {};
+	ITask() { PrerequistsCounter.Set(1); };
+	virtual ~ITask() {};
 	virtual void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) = 0;
 	
 	template<typename T, typename ... args>
@@ -193,7 +193,7 @@ public:
 	template<typename T, typename ... args>
 	static T* CreateJob(const std::vector<YJobHandleRef> *Depeneces = nullptr, args&& ... arg)
 	{
-		return CreateJob<T>(YJobHandleRef(new YJobHandle), Depeneces, std::forward<args>(arg)...);
+		return CreateJob<T>(YJobHandleRef(new TaskHandle), Depeneces, std::forward<args>(arg)...);
 	}
 
 	YJobHandleRef DispatchJob();
@@ -208,14 +208,14 @@ class YTaskGraphInterface
 {
 public:
 
-	virtual void DispatchJob(YJob* JobToDispatch)=0;
+	virtual void DispatchJob(ITask* JobToDispatch)=0;
 	static YTaskGraphInterface& Get();
 
 	static void Startup(int NumThreads);
 
 };
 
-class YJobNullTask:public YJob
+class YJobNullTask:public ITask
 {
 public:
 	YJobNullTask() {};
@@ -223,7 +223,7 @@ public:
 	virtual void Task(int InThreadID, const YJobHandleRef&) override {};
 };
 
-class TrigerEventJob :public YJob
+class TrigerEventJob :public ITask
 {
 public:
 	TrigerEventJob(FEvent* pEvent)

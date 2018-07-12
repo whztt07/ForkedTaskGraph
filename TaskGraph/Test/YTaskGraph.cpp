@@ -35,7 +35,7 @@ public:
 	{
 		while (1)
 		{
-			YJob* JobToDo = nullptr;
+			ITask* JobToDo = nullptr;
 			{
 				FScopeLock Lock(&CS);
 				JobToDo = 	JobArray.Pop();
@@ -54,7 +54,7 @@ public:
 			}
 		}
 	}
-	void AddJob(YJob* InJob)
+	void AddJob(ITask* InJob)
 	{
 		
 			FScopeLock Lock(&CS);
@@ -68,20 +68,20 @@ public:
 		
 	}
 	bool IsIdle() const { return IsIdleState; }
-	ThreadSafeLockPointerArray<YJob> JobArray;
+	ThreadSafeLockPointerArray<ITask> JobArray;
 	FEvent*					EventWaitforIdle;
 	bool							IsIdleState;
 	FCriticalSection			CS;
 };
 
-YJobHandleRef YJob::DispatchJob()
+YJobHandleRef ITask::DispatchJob()
 {
 	YJobHandleRef JobRefBeforeRelease = JobHandle;
 	YTaskGraphInterface::Get().DispatchJob(this);
 	return JobRefBeforeRelease;
 }
 
-void YJob::ExcuteTask(int InThreadI)
+void ITask::ExcuteTask(int InThreadI)
 {
 	assert(!JobHandle->WaitForJobs.size());
 	Task(InThreadI,JobHandle);
@@ -89,7 +89,7 @@ void YJob::ExcuteTask(int InThreadI)
 	delete this;
 }
 
-YJobHandleRef YJob::GetJobHandle()
+YJobHandleRef ITask::GetJobHandle()
 {
 	return JobHandle;
 }
@@ -98,15 +98,15 @@ class YTaskGraphInterfaceImplement : public YTaskGraphInterface
 {
 public:
 	YTaskGraphInterfaceImplement();
-	virtual	void DispatchJob(YJob * JobToDispatch) override;
+	virtual	void DispatchJob(ITask * JobToDispatch) override;
 private:
-	void EnqueueJob(YJob* JobToDispatch);
+	void EnqueueJob(ITask* JobToDispatch);
 	std::vector<YTaskGraphThread*> Threads;
 	std::vector<YTaskGraphThreadProc*>   ThreadProcs;
 	FThreadSafeCounter         ThreadToDispatchImp;
 };
 
-void YTaskGraphInterfaceImplement::DispatchJob(YJob * JobToDispatch)
+void YTaskGraphInterfaceImplement::DispatchJob(ITask * JobToDispatch)
 {
 	if (JobToDispatch->PrerequistsCounter.Decrement() == 0)
 	{
@@ -114,7 +114,7 @@ void YTaskGraphInterfaceImplement::DispatchJob(YJob * JobToDispatch)
 	}
 }
 
-void YTaskGraphInterfaceImplement::EnqueueJob(YJob * JobToDispatch)
+void YTaskGraphInterfaceImplement::EnqueueJob(ITask * JobToDispatch)
 {
 	// find an idle thread;
 	YTaskGraphThreadProc* ThreadRunnableToDispatch = nullptr;
@@ -160,12 +160,12 @@ YTaskGraphInterface& YTaskGraphInterface::Get()
 	return *GYTaskGraphInterfaceImplement;
 }
 
-void YJobHandle::DoNotCompleteUnitl(YJobHandleRef JobHandleToWaitFor)
+void TaskHandle::DoNotCompleteUnitl(YJobHandleRef JobHandleToWaitFor)
 {
 	WaitForJobs.push_back(JobHandleToWaitFor);
 }
 
-bool YJobHandle::AddChildJob(YJob* Child)
+bool TaskHandle::AddChildJob(ITask* Child)
 {
 	if (SubsequenceJobs.IsClosed())
 	{
@@ -178,23 +178,23 @@ bool YJobHandle::AddChildJob(YJob* Child)
 	}
 }
 
-void YJobHandle::DispatchSubsequents()
+void TaskHandle::DispatchSubsequents()
 {
 	if (WaitForJobs.size())
 	{
 		std::vector<YJobHandleRef> Tmp;
 		Tmp.swap(WaitForJobs);
-		YJob::CreateJob<YJobNullTask>(YJobHandleRef(this), &Tmp)->DispatchJob();
+		ITask::CreateJob<YJobNullTask>(YJobHandleRef(this), &Tmp)->DispatchJob();
 		return;
 	}
-	std::vector<YJob*> ChildrenJobs = SubsequenceJobs.GetArrayValueAndClosed();
-	for (YJob* ChildJob : ChildrenJobs)
+	std::vector<ITask*> ChildrenJobs = SubsequenceJobs.GetArrayValueAndClosed();
+	for (ITask* ChildJob : ChildrenJobs)
 	{
 		YTaskGraphInterface::Get().DispatchJob(ChildJob);
 	}
 }
 
-bool YJobHandle::IsComplelte()
+bool TaskHandle::IsComplelte()
 {
 	return SubsequenceJobs.IsClosed();
 }

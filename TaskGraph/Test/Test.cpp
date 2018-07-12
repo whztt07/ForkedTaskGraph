@@ -83,7 +83,7 @@ void EndRedirectionIoToFile()
 	std::cout.rdbuf(coutBuf);
 }
 
-class DependentJob :public YJob
+class DependentJob :public ITask
 {
 public:
 	DependentJob(DependentJob* InParentJob)
@@ -106,59 +106,10 @@ private:
 
 
 
-class YGFX
-{
-public:
-	YGFX()
-	{
-		ParentGFX = nullptr;
-		Pos = 0;
-	}
-	std::string Name;
-	YGFX* ParentGFX;
-	std::vector<YGFX*> Children;
-	int  Pos;
-	YJobHandleRef  GFXWaitForTickComplelte;
-
-	void Tick()
-	{
-		class YGFXJob : public YJob
-		{
-		public:
-			YGFXJob(YGFX* pGFX)
-			{
-				pMainGFX = pGFX;
-			}
-			virtual  void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) override
-			{
-				assert(pMainGFX);
-				std::cout << "gfx[" << pMainGFX->Name << "] is tick" << std::endl;
-				if (pMainGFX->ParentGFX)
-				{
-					pMainGFX->Pos = pMainGFX->ParentGFX->Pos + 1;
-				}
-
-				/*	FGraphEventRef WaitCallBack = TGraphTask<GFXTickCallBack>::CreateTask(NULL, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(pMainGFX);
-				MyCompletionGraphEvent->DontCompleteUntil(WaitCallBack);*/
-				for (YGFX* pChild : pMainGFX->Children)
-				{
-					//TGraphTask<GFXTickTask>::CreateTask(nullptr, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(pChild);
-					YGFXJob* pJob = YJob::CreateJob<YGFXJob>(nullptr, pChild);
-					YJobHandleRef ChildJobHandle = pJob->DispatchJob();
-					ThisJobHandle->DoNotCompleteUnitl(ChildJobHandle);
-				}
-			}
-			YGFX* pMainGFX;
-		};
-
-		GFXWaitForTickComplelte = YJob::CreateJob<YGFXJob>(nullptr, this)->DispatchJob();
-	}
-
-};
 
 void YTaskGraphTest()
 {
-	YTaskGraphInterface::Startup(4);
+	
 	//DependentJob* Job0 = YJob::CreateJob<DependentJob>(nullptr, nullptr);
 	//std::vector<YJobHandleRef> Parent;
 	//Parent.clear();
@@ -177,6 +128,238 @@ void YTaskGraphTest()
 	//	TrigerEventJob* JobEvent = YJob::CreateJob<TrigerEventJob>(&Parent, Event.Get());
 	//	YTaskGraphInterface::Get().DispatchJob(JobEvent);
 	//}
+
+	
+
+	
+
+}
+
+int main()
+{
+	//RedirectionIOToFile();
+	FPlatformTime::InitTiming();
+	/*const int nStep = 10;
+	const int nTask = 3000;
+	for (int i = 0; i < nTask; ++i)
+	{
+		GPrimeResult.push_back(std::vector<int>());
+	}
+	double fStart = FPlatformTime::Seconds();
+	std::vector<FGraphEventRef> Result;
+	for (int i = 0; i < nTask; ++i)
+	{
+		int nStart = i*nStep;
+		int nEnd = (i + 1)*nStep;
+		Result.push_back(TGraphTask<FindPrim>::CreateTask(NULL, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(nStart, nEnd, i));
+	}
+
+	{
+		FScopedEvent WaitForTasks;
+		TGraphTask<FTriggerEventGraphTask>::CreateTask(&Result, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(WaitForTasks.Get());
+	}
+	
+	double fEndTime = FPlatformTime::Seconds();
+	std::cout<<"cost time "<<fEndTime - fStart<<std::endl;*/
+	/*int BreakStep = 0;
+	for (int i = 0; i < nTask; ++i)
+	{
+		for (int j = 0; j < GPrimeResult[i].size(); ++j)
+		{
+			BreakStep++;
+			if (BreakStep % 20 == 0)
+				std::cout << std::endl;
+			std::cout << GPrimeResult[i][j] << "  ";
+		}
+	}*/
+
+
+	/*std::cout<<"Begin do dependance job"<<std::endl;*/
+	//                     Root
+	//       FirstChild               SecondChild
+	//          A                      B                   C
+	//      D      E               F      G
+	//   H    I      J           K  L     M     
+	//GFX Root;
+	//Root.Name = "ROOT";
+	//Root.ParentGFX = nullptr;
+	//Root.Pos = 0;
+
+	//GFX FirstChild;
+	//FirstChild.Name = "FirstChild";
+	//FirstChild.ParentGFX = &Root;
+	//Root.Children.push_back(&FirstChild);
+
+
+	//GFX SecondChild;
+	//SecondChild.Name = "SecondChild";
+	//SecondChild.ParentGFX = &Root;
+	//Root.Children.push_back(&SecondChild);
+
+	//GFX A;
+	//A.Name = "A";
+	//A.ParentGFX = &FirstChild;
+	//FirstChild.Children.push_back(&A);
+
+	//GFX B;
+	//B.Name = "B";
+	//B.ParentGFX = &SecondChild;
+	//SecondChild.Children.push_back(&B);
+
+	//GFX C;
+	//C.Name = "C";
+	//C.ParentGFX = &SecondChild;
+	//SecondChild.Children.push_back(&C);
+
+	//GFX D;
+	//D.Name = "D";
+	//D.ParentGFX = &A;
+	//A.Children.push_back(&D);
+
+	//GFX E;
+	//E.Name = "E";
+	//E.ParentGFX = &A;
+	//A.Children.push_back(&E);
+
+	//GFX F;
+	//F.Name = "F";
+	//F.ParentGFX = &B;
+	//B.Children.push_back(&F);
+
+	//GFX G;
+	//G.Name = "G";
+	//G.ParentGFX = &B;
+	//B.Children.push_back(&G);
+
+	//GFX H;
+	//H.Name = "H";
+	//H.ParentGFX = &D;
+	//D.Children.push_back(&H);
+
+	//GFX I;
+	//I.Name = "I";
+	//I.ParentGFX = &D;
+	//D.Children.push_back(&I);
+
+
+	////                     Root
+	////       FirstChild               SecondChild
+	////          A                      B                   C
+	////      D      E               F      G
+	////   H    I      J           K  L     M     
+	////   
+
+	//GFX J;
+	//J.Name = "J";
+	//J.ParentGFX = &E;
+	//E.Children.push_back(&J);
+
+	//GFX K;
+	//K.Name = "K";
+	//K.ParentGFX = &F;
+	//F.Children.push_back(&K);
+
+	//GFX L;
+	//L.Name = "L";
+	//L.ParentGFX = &F;
+	//F.Children.push_back(&L);
+
+	//GFX M;
+	//M.Name = "M";
+	//M.ParentGFX = &G;
+	//G.Children.push_back(&M);
+
+
+	//Root.Tick();
+	//
+	//std::vector<FGraphEventRef> WaitList;
+	//WaitList.push_back(Root.GFXWaitForTickComplete);
+	//TGraphTask<FReturnGraphTask>::CreateTask(&WaitList, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(ENamedThreads::GameThread);
+	//FTaskGraphInterface::Get().ProcessThreadUntilRequestReturn(ENamedThreads::GameThread);
+
+	//std::cout<<"End do dependance job\n"<<std::endl;
+	//FTaskGraphInterface::Get().ProcessThreadUntilIdle(ENamedThreads::GameThread);
+
+	//AllocResource();
+	//fStart = FPlatformTime::Seconds();
+	//Merge();
+	//fEndTime = FPlatformTime::Seconds();
+	//std::cout << "merge sort one core cost time " << fEndTime - fStart << std::endl;
+
+	//double fStart = FPlatformTime::Seconds();
+	//MergeParallel();
+	//double fEndTime = FPlatformTime::Seconds();
+	//std::cout << "merge sort taskgraph cost time " << fEndTime - fStart << std::endl;
+	//CompareResult();
+
+	//fStart = FPlatformTime::Seconds();
+	//QSort();
+	//fEndTime = FPlatformTime::Seconds();
+	//std::cout << "qsort cost time " << fEndTime - fStart << std::endl;
+
+
+	//YTaskGraphTest();
+	
+
+	//fStart = FPlatformTime::Seconds();
+	//MergeParallelWithY();
+	//fEndTime = FPlatformTime::Seconds();
+	//std::cout << "merge sort YJob cost time " << fEndTime - fStart << std::endl;
+	//CompareResultY();
+	//EndRedirectionIoToFile();
+	//std::cout << "EndProcess..." << std::endl;
+
+	YTaskGraphInterface::Startup(4);
+
+	class YGFX
+	{
+	public:
+		YGFX()
+		{
+			ParentGFX = nullptr;
+			Pos = 0;
+		}
+		std::string Name;
+		YGFX* ParentGFX;
+		std::vector<YGFX*> Children;
+		int  Pos;
+		YJobHandleRef  GFXWaitForTickComplelte;
+
+		void Tick()
+		{
+			class YGFXJob : public ITask
+			{
+			public:
+				YGFXJob(YGFX* pGFX)
+				{
+					pMainGFX = pGFX;
+				}
+				virtual  void Task(int InThreadID, const YJobHandleRef& ThisJobHandle) override
+				{
+					assert(pMainGFX);
+					std::cout << "gfx[" << pMainGFX->Name << "] is tick" << std::endl;
+					if (pMainGFX->ParentGFX)
+					{
+						pMainGFX->Pos = pMainGFX->ParentGFX->Pos + 1;
+					}
+
+					/*	FGraphEventRef WaitCallBack = TGraphTask<GFXTickCallBack>::CreateTask(NULL, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(pMainGFX);
+					MyCompletionGraphEvent->DontCompleteUntil(WaitCallBack);*/
+					for (YGFX* pChild : pMainGFX->Children)
+					{
+						//TGraphTask<GFXTickTask>::CreateTask(nullptr, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(pChild);
+						YGFXJob* pJob = ITask::CreateJob<YGFXJob>(nullptr, pChild);
+						YJobHandleRef ChildJobHandle = pJob->DispatchJob();
+						ThisJobHandle->DoNotCompleteUnitl(ChildJobHandle);
+					}
+				}
+				YGFX* pMainGFX;
+			};
+
+			GFXWaitForTickComplelte = ITask::CreateJob<YGFXJob>(nullptr, this)->DispatchJob();
+		}
+
+	};
 
 	std::cout << "Begin do dependance job" << std::endl;
 	//                     Root
@@ -273,191 +456,18 @@ void YTaskGraphTest()
 	M.ParentGFX = &G;
 	G.Children.push_back(&M);
 
-
-	//Root.Tick();
-
-	/*{
-	FScopedEvent Event;
-	Parent.clear();
-	Parent.push_back(Root.GFXWaitForTickComplelte);
-	TrigerEventJob* JobEvent = YJob::CreateJob<TrigerEventJob>(&Parent, Event.Get());
-	YTaskGraphInterface::Get().DispatchJob(JobEvent);
-	}*/
-
-}
-
-int main()
-{
-	//RedirectionIOToFile();
-	FTaskGraphInterface::Startup(FPlatformProcess::NumberOfCores());
-	FTaskGraphInterface::Get().AttachToThread(ENamedThreads::GameThread);
-	FPlatformTime::InitTiming();
-	const int nStep = 10;
-	const int nTask = 3000;
-	for (int i = 0; i < nTask; ++i)
-	{
-		GPrimeResult.push_back(std::vector<int>());
-	}
 	double fStart = FPlatformTime::Seconds();
-	std::vector<FGraphEventRef> Result;
-	for (int i = 0; i < nTask; ++i)
-	{
-		int nStart = i*nStep;
-		int nEnd = (i + 1)*nStep;
-		Result.push_back(TGraphTask<FindPrim>::CreateTask(NULL, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(nStart, nEnd, i));
-	}
-
-	{
-		FScopedEvent WaitForTasks;
-		TGraphTask<FTriggerEventGraphTask>::CreateTask(&Result, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(WaitForTasks.Get());
-	}
-	
-	double fEndTime = FPlatformTime::Seconds();
-	std::cout<<"cost time "<<fEndTime - fStart<<std::endl;
-	/*int BreakStep = 0;
-	for (int i = 0; i < nTask; ++i)
-	{
-		for (int j = 0; j < GPrimeResult[i].size(); ++j)
-		{
-			BreakStep++;
-			if (BreakStep % 20 == 0)
-				std::cout << std::endl;
-			std::cout << GPrimeResult[i][j] << "  ";
-		}
-	}*/
-
-
-	std::cout<<"Begin do dependance job"<<std::endl;
-	//                     Root
-	//       FirstChild               SecondChild
-	//          A                      B                   C
-	//      D      E               F      G
-	//   H    I      J           K  L     M     
-	GFX Root;
-	Root.Name = "ROOT";
-	Root.ParentGFX = nullptr;
-	Root.Pos = 0;
-
-	GFX FirstChild;
-	FirstChild.Name = "FirstChild";
-	FirstChild.ParentGFX = &Root;
-	Root.Children.push_back(&FirstChild);
-
-
-	GFX SecondChild;
-	SecondChild.Name = "SecondChild";
-	SecondChild.ParentGFX = &Root;
-	Root.Children.push_back(&SecondChild);
-
-	GFX A;
-	A.Name = "A";
-	A.ParentGFX = &FirstChild;
-	FirstChild.Children.push_back(&A);
-
-	GFX B;
-	B.Name = "B";
-	B.ParentGFX = &SecondChild;
-	SecondChild.Children.push_back(&B);
-
-	GFX C;
-	C.Name = "C";
-	C.ParentGFX = &SecondChild;
-	SecondChild.Children.push_back(&C);
-
-	GFX D;
-	D.Name = "D";
-	D.ParentGFX = &A;
-	A.Children.push_back(&D);
-
-	GFX E;
-	E.Name = "E";
-	E.ParentGFX = &A;
-	A.Children.push_back(&E);
-
-	GFX F;
-	F.Name = "F";
-	F.ParentGFX = &B;
-	B.Children.push_back(&F);
-
-	GFX G;
-	G.Name = "G";
-	G.ParentGFX = &B;
-	B.Children.push_back(&G);
-
-	GFX H;
-	H.Name = "H";
-	H.ParentGFX = &D;
-	D.Children.push_back(&H);
-
-	GFX I;
-	I.Name = "I";
-	I.ParentGFX = &D;
-	D.Children.push_back(&I);
-
-
-	//                     Root
-	//       FirstChild               SecondChild
-	//          A                      B                   C
-	//      D      E               F      G
-	//   H    I      J           K  L     M     
-	//   
-
-	GFX J;
-	J.Name = "J";
-	J.ParentGFX = &E;
-	E.Children.push_back(&J);
-
-	GFX K;
-	K.Name = "K";
-	K.ParentGFX = &F;
-	F.Children.push_back(&K);
-
-	GFX L;
-	L.Name = "L";
-	L.ParentGFX = &F;
-	F.Children.push_back(&L);
-
-	GFX M;
-	M.Name = "M";
-	M.ParentGFX = &G;
-	G.Children.push_back(&M);
-
 
 	Root.Tick();
-	
-	std::vector<FGraphEventRef> WaitList;
-	WaitList.push_back(Root.GFXWaitForTickComplete);
-	TGraphTask<FReturnGraphTask>::CreateTask(&WaitList, ENamedThreads::GameThread).ConstructAndDispatchWhenReady(ENamedThreads::GameThread);
-	FTaskGraphInterface::Get().ProcessThreadUntilRequestReturn(ENamedThreads::GameThread);
 
-	std::cout<<"End do dependance job\n"<<std::endl;
-	//FTaskGraphInterface::Get().ProcessThreadUntilIdle(ENamedThreads::GameThread);
+	{
+		FScopedEvent Event;
+		std::vector<YJobHandleRef>   Parent;
+		Parent.push_back(Root.GFXWaitForTickComplelte);
+		TrigerEventJob* JobEvent = ITask::CreateJob<TrigerEventJob>(&Parent, Event.Get());
+		YTaskGraphInterface::Get().DispatchJob(JobEvent);
+	}
 
-	AllocResource();
-	//fStart = FPlatformTime::Seconds();
-	//Merge();
-	//fEndTime = FPlatformTime::Seconds();
-	//std::cout << "merge sort one core cost time " << fEndTime - fStart << std::endl;
-
-	fStart = FPlatformTime::Seconds();
-	MergeParallel();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "merge sort taskgraph cost time " << fEndTime - fStart << std::endl;
-	CompareResult();
-
-	//fStart = FPlatformTime::Seconds();
-	//QSort();
-	//fEndTime = FPlatformTime::Seconds();
-	//std::cout << "qsort cost time " << fEndTime - fStart << std::endl;
-
-
-	YTaskGraphTest();
-	
-	fStart = FPlatformTime::Seconds();
-	MergeParallelWithY();
-	fEndTime = FPlatformTime::Seconds();
-	std::cout << "merge sort YJob cost time " << fEndTime - fStart << std::endl;
-	CompareResultY();
-	//EndRedirectionIoToFile();
-	std::cout << "EndProcess..." << std::endl;
+	double fEndTime = FPlatformTime::Seconds();
+	std::cout << "GFX Tick Cost Time : " << fEndTime - fStart << std::endl;
 }
