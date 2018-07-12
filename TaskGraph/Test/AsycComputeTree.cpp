@@ -45,14 +45,9 @@ void AllocResource()
 	GVector4.assign(GVector.begin(), GVector.end());
 }
 
-void Merge()
+void MergeRecursive()
 {
 	MergeSortRecursive(0, gCount);
-
-	/*for (int i : GVector)
-	{
-		std::cout << i << "   ";
-	}*/
 }
 
 
@@ -118,7 +113,7 @@ public:
 };
 
 
-void MergeParallel()
+void MergeParallelUE()
 {
 
 	{
@@ -126,12 +121,7 @@ void MergeParallel()
 		std::vector<FGraphEventRef> WaitList;
 		WaitList.push_back(TGraphTask<MergeSortTask>::CreateTask(nullptr, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(0, gCount));
 		TGraphTask<FTriggerEventGraphTask>::CreateTask(&WaitList, ENamedThreads::AnyThread).ConstructAndDispatchWhenReady(WaitForTasks.Get());
-		// waitfor(Root.GFXWaitForTickComplete);
 	}
-	/*for (int i : GVector2)
-	{
-	std::cout << i << "   ";
-	}*/
 }
 
 class YMergeJob : public ITask
@@ -164,7 +154,6 @@ public:
 		:nStart(Start)
 		, nEnd(End)
 	{
-		//std::cout << "StartJob:[" << nStart<< "   "<<nEnd<<"]"<<std::endl;
 	}
 	virtual ~MergeSortJob() {}
 private:
@@ -179,15 +168,12 @@ private:
 			return;
 		}
 		int Mid = (nStart + nEnd) / 2;
-		//std::cout << "ProcessJob:[" << nStart << "   " << nEnd << "]" << std::endl;
 		YJobHandleRef LeftHalfSoft = ITask::CreateJob<MergeSortJob>(nullptr,nStart, Mid)->DispatchJob();
 		YJobHandleRef RightHalfSoft = ITask::CreateJob<MergeSortJob>(nullptr, Mid, nEnd)->DispatchJob();
 		std::vector<YJobHandleRef> MergePrerequisites;
 		MergePrerequisites.push_back(LeftHalfSoft);
 		MergePrerequisites.push_back(RightHalfSoft);
 		ThisJobHandle->DoNotCompleteUnitl(ITask::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd, Mid)->DispatchJob());
-		//YJob::CreateJob<YMergeJob>(&MergePrerequisites,nStart, nEnd,Mid)->DispatchJob();
-		//ThisJobHandle->DoNotCompleteUnitl(LeftHalfSoft);
 	}
 
 	int nStart;
@@ -200,8 +186,6 @@ void MergeParallelWithY()
 		std::vector<YJobHandleRef> WaitList;
 		WaitList.push_back(ITask::CreateJob<MergeSortJob>(nullptr, 0,gCount)->DispatchJob());
 		ITask::CreateJob<TrigerEventJob>(&WaitList, WaitForTasks.Get())->DispatchJob();
-		// waitfor(Root.GFXWaitForTickComplete);
-		//FPlatformProcess::Sleep(10);
 	}
 }
 

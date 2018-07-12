@@ -10,8 +10,8 @@ public:
 };
 
 void AllocResource();
-void Merge();
-void MergeParallel();
+void MergeRecursive();
+void MergeParallelUE();
 void MergeParallelWithY();
 void CompareResultY();
 void CompareResult();
